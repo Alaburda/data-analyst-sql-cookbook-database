@@ -7,6 +7,67 @@ library(lubridate)
 # Set seed for reproducibility
 set.seed(42) 
 
+
+# Create a calendar table ----
+
+date_dimension <- tibble(date = seq(as.Date('2011-01-01'),as.Date('2011-01-31'),by = 1),
+                         full_date_description = format(date, format="%Y m. %B %d d."),
+                         day_of_week = wday(date, label=FALSE, week_start = 1),
+                         day_of_week_name = wday(date, label=TRUE, abbr = FALSE),
+                         calendar_iso_week = isoweek(date),
+                         calendar_week = week(date),
+                         calendar_month = month(date),
+                         calendar_month_name = month(date, label = TRUE, abbr = FALSE),
+                         calendar_quarter = quarter(date),
+                         calendar_quarter_name = paste0("Q",quarter(date)),
+                         calendar_year = year(date),
+                         is_weekday = as.integer(wday(date, week_start = 1) < 6))
+
+get_holidays <- function(country_code = "lt", year = "2023") {
+  
+  rs <- httr::GET(glue::glue("https://date.nager.at/api/v3/publicholidays/{year}/{country_code}"))
+  
+  out <- httr::content(rs) %>% 
+    tibble::enframe() %>% 
+    dplyr::select(value) %>% 
+    tidyr::unnest_wider(value) %>% 
+    dplyr::transmute(date = as.Date(date),
+           holiday_name_local = localName,
+           holiday_name = name)
+  
+  return(out)
+  
+}
+
+date_dimension <- function(date_from, date_to, full_date_format = "%Y m. %B %d d.", week_start = 1, country_code = "LT") {
+  
+  date_skeleton <- tibble(date = seq(as.Date(date_from),as.Date(date_to),by = 1),
+                          full_date_description = format(date, format=full_date_format),
+                          day_of_week = wday(date, label=FALSE, week_start = week_start),
+                          day_of_week_name = wday(date, label=TRUE, abbr = FALSE),
+                          calendar_iso_week = isoweek(date),
+                          calendar_week = week(date),
+                          calendar_month = month(date),
+                          calendar_month_name = month(date, label = TRUE, abbr = FALSE),
+                          calendar_quarter = quarter(date),
+                          calendar_quarter_name = paste0("Q",quarter(date)),
+                          calendar_year = year(date),
+                          is_weekday = as.integer(wday(date, week_start = 1) < 6))
+
+  holidays <- purrr::map_df(unique(date_skeleton$calendar_year), ~get_holidays(country_code = country_code, year = .))
+
+  out <- date_skeleton %>%
+    dplyr::left_join(holidays, by = "date") %>%
+    dplyr::mutate(is_workday = is_weekday*is.na(holiday_name))
+
+
+  return(out)
+
+}
+
+calendar <- date_dimension("2024-01-01","2024-05-01")
+
+
 # Sample users data (as in your SQL)
 users <- data.frame(
   user_id = 1:5,
@@ -123,6 +184,8 @@ dbWriteTable(con, 'subscription_tiers', subscription_tiers, row.names = FALSE)
 dbWriteTable(con, 'subscriptions', scd2_subscriptions, row.names = FALSE)
 dbWriteTable(con, 'employees', employees, row.names = FALSE)
 dbWriteTable(con, 'support_tickets', support_tickets, row.names = FALSE)
+dbWriteTable(con, 'calendar', calendar, row.names = FALSE)
+
 
 # Test: Print tables
 print(dbReadTable(con, 'users'))

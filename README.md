@@ -50,6 +50,40 @@ HAVING ticket_count > 1;
 SELECT * FROM subscription_tiers;
 ```
 
+## Data Dictionary
+
+| Table                | Field            | Type        | Description                                 |
+|----------------------|------------------|-------------|---------------------------------------------|
+| users                | user_id          | INTEGER     | Primary key                                 |
+|                      | first_name       | TEXT        | User's first name                           |
+|                      | last_name        | TEXT        | User's last name                            |
+|                      | email            | TEXT        | User's email (unique)                       |
+|                      | signup_date      | DATE        | Date user signed up                         |
+| subscriptions        | subscription_sk  | INTEGER     | Surrogate key (PK)                          |
+|                      | user_id          | INTEGER     | Foreign key to users                        |
+|                      | tier_id          | INTEGER     | Foreign key to subscription_tiers           |
+|                      | start_date       | DATE        | Subscription start date                     |
+|                      | end_date         | DATE        | Subscription end date                       |
+|                      | effective_from   | DATE        | SCD2 effective from                         |
+|                      | effective_to     | DATE        | SCD2 effective to                           |
+|                      | is_current       | INTEGER     | 1 if current, 0 otherwise                   |
+| subscription_tiers   | tier_id          | INTEGER     | Primary key                                 |
+|                      | tier_name        | TEXT        | Name of the subscription tier               |
+|                      | monthly_price    | REAL        | Monthly price of the tier                   |
+| support_tickets      | ticket_sk        | INTEGER     | Surrogate key (PK)                          |
+|                      | user_id          | INTEGER     | Foreign key to users                        |
+|                      | employee_id      | INTEGER     | Foreign key to employees                    |
+|                      | subject          | TEXT        | Ticket subject                              |
+|                      | status           | TEXT        | Ticket status                               |
+|                      | effective_from   | DATE        | SCD2 effective from                         |
+|                      | effective_to     | DATE        | SCD2 effective to                           |
+|                      | is_current       | INTEGER     | 1 if current, 0 otherwise                   |
+| employees            | employee_id      | INTEGER     | Primary key                                 |
+|                      | first_name       | TEXT        | Employee's first name                       |
+|                      | last_name        | TEXT        | Employee's last name                        |
+|                      | department       | TEXT        | Department                                  |
+|                      | manager_id       | INTEGER     | Employee's manager (nullable, ragged)       |
+
 ---
 
 This database is ideal for practicing SCD2 queries, joins, and analytics in a subscription business context.

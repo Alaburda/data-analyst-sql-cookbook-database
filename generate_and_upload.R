@@ -65,7 +65,8 @@ date_dimension <- function(date_from, date_to, full_date_format = "%Y m. %B %d d
 
 }
 
-calendar <- date_dimension("2024-01-01","2024-05-01")
+calendar <- date_dimension("2024-01-01","2024-05-01") %>%
+  mutate(date = as.character(date))
 
 
 # Sample users data (as in your SQL)

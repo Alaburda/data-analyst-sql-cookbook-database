@@ -153,6 +153,14 @@ scd2_subscriptions <- bind_rows(
 scd2_subscriptions$subscription_sk <- 1:nrow(scd2_subscriptions)
 scd2_subscriptions <- scd2_subscriptions[,c('subscription_sk','user_id','tier_id','start_date','end_date','effective_from','effective_to','is_current')]
 
+scd2_subscriptions <- scd2_subscriptions %>%
+  mutate(
+    start_date = as.character(start_date),
+    end_date = as.character(end_date),
+    effective_from = as.character(effective_from),
+    effective_to = as.character(effective_to)
+  )
+
 # SCD2 Support tickets (can overlap)
 support_tickets <- bind_rows(
   lapply(1:nrow(users), function(i) {
